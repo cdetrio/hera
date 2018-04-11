@@ -283,13 +283,19 @@ evm_result evm_execute(
     if (!hasWasmPreamble(_code)) {
       hera_instance* hera = static_cast<hera_instance*>(instance);
 #if HERA_EVM2WASM
+      cerr << "HERA_EVM2WASM is true." << endl;
       // Translate EVM bytecode to WASM
-      if (hera->use_evm2wasm_js)
+      if (hera->use_evm2wasm_js) {
+        cerr << "calling evm2wasm_js..." << endl;
         _code = evm2wasm_js(_code);
-      else
+      } else {
+        cerr << "calling evm2wasm (not js)..." << endl;
         _code = evm2wasm(context, _code);
+      }
+      cerr << "got transpiled code size: " << _code.size() << " (bytes?)" << endl;
       heraAssert(_code.size() != 0, "Transcompiling via evm2wasm failed");
 #else
+      cerr << "HERA_EVM2WASM is false." << endl;
       ret.status_code = hera->fallback ? EVM_REJECTED : EVM_FAILURE;
       return ret;
 #endif
