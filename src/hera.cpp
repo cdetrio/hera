@@ -163,10 +163,12 @@ vector<uint8_t> evm2wasm_js(vector<uint8_t> const& input) {
   cmd += " --trace";
 #endif
 
+  cerr << "Calling evm2wasm.js (input " << input.size() << " bytes)..." << endl;
   int ret = system(cmd.data());
   unlink(fileEVM.data());
 
   if (ret != 0) {
+    cerr << "evm2wasm.js command failed! returning empty.." << endl;
     unlink(fileWASM.data());
     return vector<uint8_t>();
   }
@@ -176,6 +178,8 @@ vector<uint8_t> evm2wasm_js(vector<uint8_t> const& input) {
                  istreambuf_iterator<char>());
 
   unlink(fileWASM.data());
+
+  cerr << "evm2wasm.js command succeded! returning str size " << str.length() << " bytes..." << endl;
 
   return vector<uint8_t>(str.begin(), str.end());
 }
