@@ -135,6 +135,7 @@ printf("Hera. start metering...\n");
   int64_t startgas = 3900000; // do not charge for metering yet (give unlimited gas)
 
   int64_t gas = startgas;
+  printf("hera.cpp sentinel. doing callSystemContract...\n");
   vector<uint8_t> ret = callSystemContract(
     context,
     { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa } }, // precompile address 0x00...0a
@@ -143,9 +144,11 @@ printf("Hera. start metering...\n");
   );
 
 #if HERA_DEBUGGING
+  printf("hera.cpp sentinel. metering done. output size: %lu\n", ret.size());
   cerr << "Metering done (output " << ret.size() << " bytes, used " << (startgas - gas) << " gas)" << endl;
 #endif
 
+  printf("hera.cpp sentinel done. returning...\n");
   return ret;
 }
 
@@ -294,12 +297,14 @@ ExecutionResult execute(
   evmc_message const& msg,
   bool meterInterfaceGas
 ) {
+  printf("hera.cpp execute...\n");
 #if HERA_DEBUGGING
   cerr << "Executing..." << endl;
 #endif
 
   Module module;
 
+  printf("execute calling wasm parser...\n");
   // Load module
   try {
     WasmBinaryBuilder parser(module, reinterpret_cast<vector<char> const&>(code), false);
@@ -322,6 +327,7 @@ ExecutionResult execute(
   );
 
   // NOTE: This should be caught during deployment time by the Sentinel.
+  printf("calling validate_contract...\n");
   validate_contract(module);
 
   // NOTE: DO NOT use the optimiser here, it will conflict with metering
@@ -331,6 +337,7 @@ ExecutionResult execute(
   EthereumInterface interface(context, state_code, msg, result, meterInterfaceGas);
   ModuleInstance instance(module, &interface);
 
+  printf("execute calling wasm main...\n");
   try {
     Name main = Name("main");
     LiteralList args;
@@ -362,6 +369,7 @@ evmc_result hera_execute(
   memset(&ret, 0, sizeof(evmc_result));
 
   try {
+    printf("hera.cpp hera_execute...\n");
     heraAssert(rev == EVMC_BYZANTIUM, "Only Byzantium supported.");
     heraAssert(msg->gas >= 0, "Negative startgas?");
 
@@ -406,9 +414,14 @@ evmc_result hera_execute(
         heraAssert(false, "");
       }
     } else if (msg->kind == EVMC_CREATE) {
+      printf("execute hera_execute handing EVMC_CREATE...\n");
       // Meter the deployment (constructor) code if it is WebAssembly
-      if (hera->metering)
+      if (hera->metering) {
+        printf("execute hera_execute calling sentinel...\n");
         run_code = sentinel(context, run_code);
+        printf("execute hera_execute sentinel returned.\n");
+      }
+      printf("execute hera_execute doing ensureCondition...\n");
       ensureCondition(run_code.size() > 5, ContractValidationFailure, "Invalid contract or metering failed.");
     }
 
@@ -417,12 +430,17 @@ evmc_result hera_execute(
     ExecutionResult result = execute(context, run_code, state_code, *msg, meterInterfaceGas);
 
     // copy call result
+    printf("hera_execute copy call result...\n");
     if (result.returnValue.size() > 0) {
+      printf("hera_execute copy call result. returnValue > 0..\n");
       vector<uint8_t> returnValue;
 
       if (msg->kind == EVMC_CREATE && !result.isRevert && hasWasmPreamble(result.returnValue)) {
+        printf("hera_execute copy call result. returnValue > 0, and msg is EVMC_CREATE..\n");
         // Meter the deployed code if it is WebAssembly
+        printf("hera_execute copy call result. returnValue > 0, and msg is EVMC_CREATE. calling sentinel..\n");
         returnValue = hera->metering ? sentinel(context, result.returnValue) : move(result.returnValue);
+        printf("hera_execute copy call result. returnValue > 0, and msg is EVMC_CREATE. sentinel returned.\n");
         ensureCondition(returnValue.size() > 5, ContractValidationFailure, "Invalid contract or metering failed.");
       } else {
         returnValue = move(result.returnValue);
