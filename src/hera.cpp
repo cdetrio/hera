@@ -125,11 +125,15 @@ vector<uint8_t> callSystemContract(
 // @returns the validated and metered output or empty output otherwise.
 vector<uint8_t> sentinel(evmc_context* context, vector<uint8_t> const& input)
 {
+printf("Hera. start metering...\n");
 #if HERA_DEBUGGING
   cerr << "Metering (input " << input.size() << " bytes)..." << endl;
+  printf("Hera debuggin. start metering...\n");
 #endif
 
-  int64_t startgas = numeric_limits<int64_t>::max(); // do not charge for metering yet (give unlimited gas)
+  //int64_t startgas = numeric_limits<int64_t>::max(); // do not charge for metering yet (give unlimited gas)
+  int64_t startgas = 3900000; // do not charge for metering yet (give unlimited gas)
+
   int64_t gas = startgas;
   vector<uint8_t> ret = callSystemContract(
     context,
