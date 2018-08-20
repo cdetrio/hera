@@ -270,24 +270,29 @@ vector<uint8_t> evm2wasm(evmc_context* context, vector<uint8_t> const& input) {
 // NOTE: This should be caught during deployment time by the Sentinel.
 void validate_contract(Module & module)
 {
+  printf("validate_contract check for entry point...\n");
   ensureCondition(
     module.getExportOrNull(Name("main")) != nullptr,
     ContractValidationFailure,
     "Contract entry point (\"main\") missing."
   );
 
+  printf("validate_contract check for export memory...\n");
   ensureCondition(
     module.getExportOrNull(Name("memory")) != nullptr,
     ContractValidationFailure,
     "Contract export (\"memory\") missing."
   );
 
+  /*
   ensureCondition(
     module.exports.size() == 2,
     ContractValidationFailure,
     "Contract exports more than (\"main\") and (\"memory\")."
   );
+  */
 
+  printf("validate_contract check for invalid namespace...\n");
   for (auto const& import: module.imports) {
     ensureCondition(
       import->module == Name("ethereum")
@@ -299,6 +304,8 @@ void validate_contract(Module & module)
       "Import from invalid namespace."
     );
   }
+
+  printf("validate_contract done.\n");
 }
 
 // Execute the contract through Binaryen.
