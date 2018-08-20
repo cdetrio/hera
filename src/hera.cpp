@@ -92,6 +92,7 @@ vector<uint8_t> callSystemContract(
   int64_t & gas,
   vector<uint8_t> const& input
 ) {
+  printf("hera.cpp callSystemContract...\n");
   evmc_message message = {
     .destination = address,
     .sender = {},
@@ -107,17 +108,28 @@ vector<uint8_t> callSystemContract(
   };
 
   evmc_result result;
+  printf("hera.cpp callSystemContract doing fn_table->call...\n");
   context->fn_table->call(&result, context, &message);
 
   vector<uint8_t> ret;
-  if (result.status_code == EVMC_SUCCESS && result.output_data)
+  printf("hera.cpp callSystemContract checking result status code.\n");
+  if (result.status_code == EVMC_SUCCESS && result.output_data) {
+    printf("hera.cpp callSystemContract checking result status code is sucess.\n");
     ret.assign(result.output_data, result.output_data + result.output_size);
+  }
 
   gas = result.gas_left;
 
-  if (result.release)
-    result.release(&result);
+  printf("hera.cpp callSystemContract checking got gas left...\n");
 
+  if (result.release) {
+    printf("hera.cpp callSystemContract result.release is true. calling result.release..\n");
+    result.release(&result);
+  } else {
+    printf("hera.cpp callSystemContract result.release is false...\n");
+  }
+
+  printf("hera.cpp callSystemContract returing..\n");
   return ret;
 }
 
@@ -128,7 +140,7 @@ vector<uint8_t> sentinel(evmc_context* context, vector<uint8_t> const& input)
 printf("Hera. start metering...\n");
 #if HERA_DEBUGGING
   cerr << "Metering (input " << input.size() << " bytes)..." << endl;
-  printf("Hera debuggin. start metering...\n");
+  printf("Hera debuggin. start metering. input size: %lu\n", input.size());
 #endif
 
   //int64_t startgas = numeric_limits<int64_t>::max(); // do not charge for metering yet (give unlimited gas)
@@ -420,9 +432,11 @@ evmc_result hera_execute(
         printf("execute hera_execute calling sentinel...\n");
         run_code = sentinel(context, run_code);
         printf("execute hera_execute sentinel returned.\n");
+        printf("execute hera_execute sentinel returned run_code with size: %lu\n", run_code.size());
       }
       printf("execute hera_execute doing ensureCondition...\n");
       ensureCondition(run_code.size() > 5, ContractValidationFailure, "Invalid contract or metering failed.");
+      printf("execute hera_execute ensureCondition done.\n");
     }
 
     heraAssert(hera->wasm_engine == hera_wasm_engine::binaryen, "Unsupported wasm engine.");
@@ -479,6 +493,7 @@ evmc_result hera_execute(
     cerr << e.what() << endl;
 #endif
   } catch (ContractValidationFailure const& e) {
+    printf("hera_execute caught ContractValidationFailure...\n");
     ret.status_code = EVMC_CONTRACT_VALIDATION_FAILURE;
 #if HERA_DEBUGGING
     cerr << e.what() << endl;
