@@ -1172,6 +1172,19 @@ void WabtEngine::verifyContract(bytes_view code) {
     }
   );
 
+  hostModule->AppendFuncExport(
+    "mulmodmont256",
+    {{Type::I32, Type::I32, Type::I32, Type::I32, Type::I32}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
+
 #if HERA_DEBUGGING
   // Create debug host module
   // The lifecycle of this pointer is handled by `env`.

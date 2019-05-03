@@ -876,4 +876,39 @@ void WasmEngine::collectBenchmarkingData()
     auto ret = mod != 0 ? ((uint512{a} * uint512{b}) % uint512{mod}).lo : 0;
     storeBignum256(ret, retOffset);
   }
+
+  void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
+  {
+    using intx::uint512;
+    auto a = loadBignum256(aOffset);
+    auto b = loadBignum256(bOffset);
+    auto mod = loadBignum256(modOffset);
+    auto inv = loadBignum256(invOffset);
+
+    /*
+    res1_512 = self * other
+    k0 = (inv * res1_512) & mask
+    res2 = ((k0 * modulus) + res1_512) >> 128
+    k1 = (res2 * inv) & mask
+    ret = ((k1 * modulus) + res2) >> 128
+    */
+    intx::uint128 mask;
+    // 0xffffffffffffffffffffffffffffffff
+    mask = 340282366920938463463374607431768211455;
+
+    auto res1 = uint512{a} * uint512{b};
+    //auto k0 = ((inv * res1).lo).lo;
+    auto k0 = (uint512{inv} * res1).lo & mask;
+    auto res2 = ((uint512{k0} * uint512{mod}) + res1) >> 128;
+    auto k1 = (res2 * uint512{inv}).lo & mask;
+    auto ret = (((uint512{k1} * uint512{mod}) + res2) >> 128).lo;
+    // auto ret = ((uint512{k1} * uint512{mod}) + res2).high ??
+
+    storeBignum256(ret, retOffset);
+
+    /*
+    auto ret = mod != 0 ? ((uint512{a} * uint512{b}) % uint512{mod}).lo : 0;
+    storeBignum256(ret, retOffset);
+    */
+  }
 }
