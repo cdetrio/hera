@@ -864,7 +864,18 @@ void WasmEngine::collectBenchmarkingData()
 
   void EthereumInterface::mul256(uint32_t aOffset, uint32_t bOffset, uint32_t retOffset)
   {
-    storeBignum256(loadBignum256(aOffset) * loadBignum256(bOffset), retOffset);
+    //HERA_DEBUG << depthToString() << " mul256 " << hex << aOffset << dec << "\n";
+    HERA_DEBUG << depthToString() << " mul256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+
+    auto a = loadBignum256(aOffset);
+    auto b = loadBignum256(bOffset);
+    HERA_DEBUG << depthToString() << " mul256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
+
+    auto ret = a * b;
+    HERA_DEBUG << depthToString() << " mul256  result: " << hex << intx::to_string(ret) << dec << "\n";
+    storeBignum256(ret, retOffset);
+
+    //storeBignum256(loadBignum256(aOffset) * loadBignum256(bOffset), retOffset);
   }
 
   void EthereumInterface::umulmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset)
@@ -885,16 +896,24 @@ void WasmEngine::collectBenchmarkingData()
     auto mod = loadBignum256(modOffset);
     auto inv = loadBignum256(invOffset);
 
+    HERA_DEBUG << depthToString() << " mulmodmont256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+
+    HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << "   mod: " << intx::to_string(mod) << dec << "\n";
+
     /*
+    python code:
     res1_512 = self * other
     k0 = (inv * res1_512) & mask
     res2 = ((k0 * modulus) + res1_512) >> 128
     k1 = (res2 * inv) & mask
     ret = ((k1 * modulus) + res2) >> 128
     */
-    intx::uint128 mask;
-    // 0xffffffffffffffffffffffffffffffff
-    mask = 340282366920938463463374607431768211455;
+
+    //auto mask = intx::uint128{"0xffffffffffffffffffffffffffffffff"};
+    //intx::uint128 mask{"0xffffffffffffffffffffffffffffffff"};
+    auto mask = intx::from_string<intx::uint128>("340282366920938463463374607431768211455");
+
+    // 0x1234…_u128 should also work if you have using namespace intx;
 
     auto res1 = uint512{a} * uint512{b};
     //auto k0 = ((inv * res1).lo).lo;
@@ -904,11 +923,9 @@ void WasmEngine::collectBenchmarkingData()
     auto ret = (((uint512{k1} * uint512{mod}) + res2) >> 128).lo;
     // auto ret = ((uint512{k1} * uint512{mod}) + res2).high ??
 
-    storeBignum256(ret, retOffset);
+    HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
 
-    /*
-    auto ret = mod != 0 ? ((uint512{a} * uint512{b}) % uint512{mod}).lo : 0;
+
     storeBignum256(ret, retOffset);
-    */
   }
 }
