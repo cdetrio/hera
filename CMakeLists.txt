@@ -32,6 +32,7 @@ cable_configure_compiler()
 if(CABLE_COMPILER_GNULIKE)
     # TODO: fix the warnings instead
     add_compile_options(-Wno-pedantic)
+    add_compile_options(-Wconversion -Wsign-conversion)
 endif()
 
 

@@ -20,6 +20,8 @@ add_library(hera
     hera.cpp
 )
 
+add_compile_options(-Wconversion -Wsign-conversion)
+
 if(HERA_BINARYEN)
   target_sources(hera PRIVATE binaryen.cpp binaryen.h)
 endif()
@@ -43,9 +45,9 @@ target_include_directories(hera
 target_link_libraries(hera PUBLIC evmc::evmc PRIVATE hera-buildinfo evmc::instructions intx::intx)
 if(NOT WIN32)
   if(CMAKE_COMPILER_IS_GNUCXX)
-    set_target_properties(hera PROPERTIES LINK_FLAGS "-Wl,--no-undefined")
+    set_target_properties(hera PROPERTIES LINK_FLAGS "-Wl,--no-undefined,-Wsign-conversion,-Wconversion")
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set_target_properties(hera PROPERTIES LINK_FLAGS "-Wl,-undefined,error")
+    set_target_properties(hera PROPERTIES LINK_FLAGS "-Wl,-undefined,error,-Wsign-conversion,-Wconversion")
   endif()
 endif()
 
