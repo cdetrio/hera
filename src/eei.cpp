@@ -851,7 +851,11 @@ void WasmEngine::collectBenchmarkingData()
     uint8_t data[32];
     loadMemory(srcOffset, data, 32);
     // FIXME: change this to little endian?
-    return intx::be::uint256(data);
+    //return intx::be::uint256(data);
+    // read little endian
+    intx::uint256 x;
+    std::memcpy(&x, data, sizeof(x));
+    return x;
   }
 
   void EthereumInterface::storeBignum256(intx::uint256 const& src, uint32_t dstOffset)
