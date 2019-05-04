@@ -167,6 +167,7 @@ protected:
   // Bignum system library
   void mul256(uint32_t aOffset, uint32_t bOffset, uint32_t retOffset);
   void umulmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset);
+  void mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset);
 
 private:
   void eeiRevertOrFinish(bool revert, uint32_t offset, uint32_t size);
