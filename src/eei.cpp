@@ -864,6 +864,14 @@ void WasmEngine::collectBenchmarkingData()
 
   void EthereumInterface::mul256(uint32_t aOffset, uint32_t bOffset, uint32_t retOffset)
   {
+    HERA_DEBUG << depthToString() << " mul256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    auto a = loadBignum256(aOffset);
+    auto b = loadBignum256(bOffset);
+    HERA_DEBUG << depthToString() << " mul256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
+    auto ret = a * b;
+    HERA_DEBUG << depthToString() << " mul256  result: " << hex << intx::to_string(ret) << dec << "\n";
+    //storeBignum256(ret, retOffset);
+
     storeBignum256(loadBignum256(aOffset) * loadBignum256(bOffset), retOffset);
   }
 
@@ -885,6 +893,10 @@ void WasmEngine::collectBenchmarkingData()
     auto mod = loadBignum256(modOffset);
     auto inv = loadBignum256(invOffset);
 
+    HERA_DEBUG << depthToString() << " mulmodmont256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+
+    HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << "   mod: " << intx::to_string(mod) << dec << "\n";
+
     /*
     python code:
     res1_512 = self * other
@@ -905,6 +917,8 @@ void WasmEngine::collectBenchmarkingData()
     auto k1 = (res2 * uint512{inv}).lo & mask;
     auto ret = (((uint512{k1} * uint512{mod}) + res2) >> 128).lo;
     // auto ret = ((uint512{k1} * uint512{mod}) + res2).high ??
+
+    HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
 
     storeBignum256(ret, retOffset);
   }
