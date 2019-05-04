@@ -862,7 +862,9 @@ void WasmEngine::collectBenchmarkingData()
   {
     uint8_t data[32];
     // FIXME: change this to little endian?
-    intx::be::store(data, src);
+    //intx::be::store(data, src);
+    // write little endian
+    std::memcpy(data, &src, sizeof(src));
     storeMemory(data, dstOffset, 32);
   }
 
