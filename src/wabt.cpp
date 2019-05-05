@@ -634,6 +634,34 @@ ExecutionResult WabtEngine::execute(
   heraAssert(hostModule, "Failed to create host module.");
 
   hostModule->AppendFuncExport(
+    "debugStartTimer",
+    {{}, {}},
+    [&interface](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues& args,
+      interp::TypedValues&
+    ) {
+      interface.debugStartTimer();
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
+    "debugFinishTimer",
+    {{}, {}},
+    [&interface](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues& args,
+      interp::TypedValues&
+    ) {
+      interface.debugFinishTimer();
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
     "printMemHex",
     {{Type::I32, Type::I32}, {}},
     [&interface](
@@ -1204,6 +1232,32 @@ void WabtEngine::verifyContract(bytes_view code) {
   // The lifecycle of this pointer is handled by `env`.
   hostModule = env.AppendHostModule("debug");
   heraAssert(hostModule, "Failed to create host module.");
+
+  hostModule->AppendFuncExport(
+    "debugStartTimer",
+    {{}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
+    "debugFinishTimer",
+    {{}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
 
   hostModule->AppendFuncExport(
     "printMemHex",

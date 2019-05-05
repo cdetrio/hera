@@ -75,6 +75,18 @@ protected:
       collectBenchmarkingData();
   }
 
+  void debugTimerStarted() noexcept
+  {
+    if (benchmarkingEnabled)
+      debugStartTime = clock::now();
+  }
+
+  void debugTimerFinished() noexcept
+  {
+    if (benchmarkingEnabled)
+      collectDebugTimer();
+  }
+
 private:
   void collectBenchmarkingData();
 
@@ -82,6 +94,7 @@ private:
   static bool benchmarkingEnabled;
   clock::time_point instantiationStartTime;
   clock::time_point executionStartTime;
+  clock::time_point debugStartTime;
 };
 
 class EthereumInterface {
@@ -128,6 +141,8 @@ protected:
   // EEI methods
 
 #if HERA_DEBUGGING
+  void debugStartTimer();
+  void debugFinishTimer();
   void debugPrintMem(bool useHex, uint32_t offset, uint32_t length);
   void debugPrintStorage(bool useHex, uint32_t pathOffset);
   void debugEvmTrace(uint32_t pc, int32_t opcode, uint32_t cost, int32_t sp);

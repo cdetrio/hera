@@ -18,6 +18,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <chrono>
+
 #include "debugging.h"
 #include "eei.h"
 #include "exceptions.h"
@@ -27,6 +29,8 @@
 #include <evmc/helpers.hpp>
 
 using namespace std;
+
+//using clock = std::chrono::high_resolution_clock;
 
 namespace hera {
 namespace
@@ -63,7 +67,39 @@ void WasmEngine::collectBenchmarkingData()
   std::ofstream{"hera_benchmarks.log", std::ios::out | std::ios::app} << log;
 }
 
+void WasmEngine::collectDebugTimer()
+{
+  // Convert duration to string with microsecond units.
+  constexpr auto to_ns_str = [](clock::duration d) {
+    return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count());
+  };
+
+  constexpr auto to_us_str = [](clock::duration d) {
+    return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count());
+  };
+
+  const auto now = clock::now();
+  const auto debugDuration = now - debugStartTime;
+
+  const auto logns = "Debug timer duration [ns]: " + to_ns_str(debugDuration) + ")\n";
+  std::cerr << logns;
+  const auto logus = "Debug timer duration [us]: " + to_us_str(debugDuration) + ")\n";
+  std::cerr << logus;
+}
+
 #if HERA_DEBUGGING
+  void EthereumInterface::debugStartTimer()
+  {
+      cerr << depthToString() << " DEBUG start timer" << endl;
+      debugTimerStarted();
+  }
+
+  void EthereumInterface::debugFinishTimer()
+  {
+      collectDebugTimer();
+      cerr << depthToString() << " DEBUG finish timer" << endl;
+  }
+
   void EthereumInterface::debugPrintMem(bool useHex, uint32_t offset, uint32_t length)
   {
       heraAssert((offset + length) > offset, "Overflow.");
