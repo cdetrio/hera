@@ -586,6 +586,34 @@ ExecutionResult WabtEngine::execute(
   heraAssert(hostModule, "Failed to create host module.");
 
   hostModule->AppendFuncExport(
+    "addmod256",
+    {{Type::I32, Type::I32, Type::I32, Type::I32}, {}},
+    [&interface](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues& args,
+      interp::TypedValues&
+    ) {
+      interface.addmod256(args[0].value.i32, args[1].value.i32, args[2].value.i32, args[3].value.i32);
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
+    "submod256",
+    {{Type::I32, Type::I32, Type::I32, Type::I32}, {}},
+    [&interface](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues& args,
+      interp::TypedValues&
+    ) {
+      interface.submod256(args[0].value.i32, args[1].value.i32, args[2].value.i32, args[3].value.i32);
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
     "mul256",
     {{Type::I32, Type::I32, Type::I32}, {}},
     [&interface](
@@ -1189,6 +1217,32 @@ void WabtEngine::verifyContract(bytes_view code) {
   // The lifecycle of this pointer is handled by `env`.
   hostModule = env.AppendHostModule("bignum");
   heraAssert(hostModule, "Failed to create host module.");
+
+  hostModule->AppendFuncExport(
+    "addmod256",
+    {{Type::I32, Type::I32, Type::I32, Type::I32}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
+    "submod256",
+    {{Type::I32, Type::I32, Type::I32, Type::I32}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
 
   hostModule->AppendFuncExport(
     "mul256",

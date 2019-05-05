@@ -167,6 +167,8 @@ protected:
   void eeiSelfDestruct(uint32_t addressOffset);
 
   // Bignum system library
+  void addmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset);
+  void submod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset);
   void mul256(uint32_t aOffset, uint32_t bOffset, uint32_t retOffset);
   void umulmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset);
   void mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset);
