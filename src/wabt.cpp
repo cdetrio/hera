@@ -642,6 +642,7 @@ ExecutionResult WabtEngine::execute(
       const interp::TypedValues& args,
       interp::TypedValues&
     ) {
+      (void)args;
       interface.debugStartTimer();
       return interp::Result::Ok;
     }
@@ -656,6 +657,7 @@ ExecutionResult WabtEngine::execute(
       const interp::TypedValues& args,
       interp::TypedValues&
     ) {
+      (void)args;
       interface.debugFinishTimer();
       return interp::Result::Ok;
     }

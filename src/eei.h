@@ -75,18 +75,6 @@ protected:
       collectBenchmarkingData();
   }
 
-  void debugTimerStarted() noexcept
-  {
-    if (benchmarkingEnabled)
-      debugStartTime = clock::now();
-  }
-
-  void debugTimerFinished() noexcept
-  {
-    if (benchmarkingEnabled)
-      collectDebugTimer();
-  }
-
 private:
   void collectBenchmarkingData();
 
@@ -94,7 +82,6 @@ private:
   static bool benchmarkingEnabled;
   clock::time_point instantiationStartTime;
   clock::time_point executionStartTime;
-  clock::time_point debugStartTime;
 };
 
 class EthereumInterface {

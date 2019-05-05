@@ -67,23 +67,34 @@ void WasmEngine::collectBenchmarkingData()
   std::ofstream{"hera_benchmarks.log", std::ios::out | std::ios::app} << log;
 }
 
-void WasmEngine::collectDebugTimer()
+std::chrono::high_resolution_clock::time_point debugStartTime;
+std::chrono::high_resolution_clock::duration debugTotalDuration;
+
+void debugTimerStarted()
+{
+  debugStartTime = std::chrono::high_resolution_clock::now();
+}
+
+void collectDebugTimer()
 {
   // Convert duration to string with microsecond units.
-  constexpr auto to_ns_str = [](clock::duration d) {
+  constexpr auto to_ns_str = [](std::chrono::high_resolution_clock::duration d) {
     return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count());
   };
 
-  constexpr auto to_us_str = [](clock::duration d) {
+  constexpr auto to_us_str = [](std::chrono::high_resolution_clock::duration d) {
     return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count());
   };
 
-  const auto now = clock::now();
+  const auto now = std::chrono::high_resolution_clock::now();
   const auto debugDuration = now - debugStartTime;
 
+  debugTotalDuration = debugTotalDuration + debugDuration;
   const auto logns = "Debug timer duration [ns]: " + to_ns_str(debugDuration) + ")\n";
   std::cerr << logns;
-  const auto logus = "Debug timer duration [us]: " + to_us_str(debugDuration) + ")\n";
+  //const auto logus = "Debug timer duration [us]: " + to_us_str(debugDuration) + ")\n";
+  //std::cerr << logus;
+  const auto logus = "Debug timer total duration [us]: " + to_us_str(debugTotalDuration) + ")\n";
   std::cerr << logus;
 }
 
