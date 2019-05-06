@@ -173,6 +173,7 @@ protected:
   void mul256(uint32_t aOffset, uint32_t bOffset, uint32_t retOffset);
   void umulmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset);
   void mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset);
+  void montgomery_multiplication_256(uint64_t* x, uint64_t* y, uint64_t* m, uint64_t* inv, uint64_t* out);
 
 private:
   void eeiRevertOrFinish(bool revert, uint32_t offset, uint32_t size);

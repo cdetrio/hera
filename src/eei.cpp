@@ -1013,15 +1013,11 @@ void collectDebugTimer()
     storeBignum256(ret, retOffset);
   }
 
+  /*
+  // naive implementation
   void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
   {
     using intx::uint512;
-    /*
-    auto a = loadBignum256(aOffset);
-    auto b = loadBignum256(bOffset);
-    auto mod = loadBignum256(modOffset);
-    auto inv = loadBignum256(invOffset);
-    */
     auto a = loadBignumPtr256(aOffset);
     auto b = loadBignumPtr256(bOffset);
     auto mod = loadBignumPtr256(modOffset);
@@ -1031,14 +1027,13 @@ void collectDebugTimer()
 
     //HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << "   mod: " << intx::to_string(mod) << dec << "\n";
 
-    /*
-    python code:
-    res1_512 = self * other
-    k0 = (inv * res1_512) & mask
-    res2 = ((k0 * modulus) + res1_512) >> 128
-    k1 = (res2 * inv) & mask
-    ret = ((k1 * modulus) + res2) >> 128
-    */
+
+    // python code:
+    // res1_512 = self * other
+    // k0 = (inv * res1_512) & mask
+    // res2 = ((k0 * modulus) + res1_512) >> 128
+    // k1 = (res2 * inv) & mask
+    // ret = ((k1 * modulus) + res2) >> 128
 
     //"0xffffffffffffffffffffffffffffffff" = 340282366920938463463374607431768211455
     // 0x1234…_u128 should also work if you have using namespace intx;
@@ -1060,4 +1055,161 @@ void collectDebugTimer()
 
     storeBignum256(ret, retOffset);
   }
+  */
+
+
+  // for debugging montgomery_multiplication_256...
+  void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
+  {
+    using intx::uint512;
+    auto a = loadBignumPtr256(aOffset);
+    auto b = loadBignumPtr256(bOffset);
+    auto mod = loadBignumPtr256(modOffset);
+    auto inv = loadBignumPtr256(invOffset);
+
+    //HERA_DEBUG << depthToString() << " mulmodmont256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+
+    HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
+    HERA_DEBUG << depthToString() << " mulmodmont256  mod: " << hex << intx::to_string(mod) << "   inv: " << intx::to_string(inv) << dec << "\n";
+
+    // python code:
+    // res1_512 = self * other
+    // k0 = (inv * res1_512) & mask
+    // res2 = ((k0 * modulus) + res1_512) >> 128
+    // k1 = (res2 * inv) & mask
+    // ret = ((k1 * modulus) + res2) >> 128
+
+    //"0xffffffffffffffffffffffffffffffff" = 340282366920938463463374607431768211455
+    // 0x1234…_u128 should also work if you have using namespace intx;
+    auto mask = intx::from_string<intx::uint128>("340282366920938463463374607431768211455");
+
+    auto res1 = uint512{a} * uint512{b};
+    //auto k0 = ((inv * res1).lo).lo;
+    auto k0 = (uint512{inv} * res1).lo & mask;
+    auto res2 = ((uint512{k0} * uint512{mod}) + res1) >> 128;
+    auto k1 = (res2 * uint512{inv}).lo & mask;
+    auto ret = (((uint512{k1} * uint512{mod}) + res2) >> 128).lo;
+    // auto ret = ((uint512{k1} * uint512{mod}) + res2).high ??
+    
+    if (ret >= mod) {
+      ret = ret - mod;
+    }
+
+    HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
+
+    //loadMemory(srcOffset, data, 32);
+    //intx::uint256 ret_test;
+
+    uint64_t* a_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(aOffset, 32));
+    uint64_t* b_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(bOffset, 32));
+    uint64_t* mod_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(modOffset, 32));
+    uint64_t* inv_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(invOffset, 32));
+    //uint64_t* ret_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(retOffset, 32));
+    uint8_t ret_data[32];
+    uint64_t* ret_ptr = reinterpret_cast<uint64_t*>(ret_data);
+
+    montgomery_multiplication_256(a_ptr, b_ptr, mod_ptr, inv_ptr, ret_ptr);
+
+    intx::uint256 ret_intx;
+    std::memcpy(&ret_intx, ret_data, sizeof(ret_intx));
+
+    HERA_DEBUG << depthToString() << " montgomery_multiplication_256  ret_intx: " << hex << intx::to_string(ret_intx) << dec << "\n";
+    
+    if (ret_intx != ret)  {
+      HERA_DEBUG << depthToString() <<  "ERROR ERROR!!! montgomery_multiplication_256 wrong result!!" << dec  << "\n";
+    }
+
+    storeBignum256(ret, retOffset);
+  }
+
+
+
+  /*
+  void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
+  {
+    // we aren't using the intx 
+    // montgomery_multiplication_256() doesn't use the intx type
+    // loadBignumPtr256 returns intx types so we don't use it.
+
+    //uint8_t* a_ptr = loadMemoryPointer(aOffset, 32);
+    //uint8_t* b_ptr = loadMemoryPointer(bOffset, 32);
+    //uint8_t* mod_ptr = loadMemoryPointer(modOffset, 32);
+    //uint8_t* inv_ptr = loadMemoryPointer(invOffset, 32);
+    //uint8_t* ret_ptr = a_ptr;
+
+    uint64_t* a_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(aOffset, 32));
+    uint64_t* b_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(bOffset, 32));
+    uint64_t* mod_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(modOffset, 32));
+    uint64_t* inv_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(invOffset, 32));
+    //uint64_t* ret_ptr = a_ptr;
+    uint64_t* ret_ptr = reinterpret_cast<uint64_t*>(loadMemoryPointer(retOffset, 32));
+
+    montgomery_multiplication_256(a_ptr, b_ptr, mod_ptr, inv_ptr, ret_ptr);
+    // storeBignum256 should also be uneeded, since the return value has already been written to the wasm memory
+    //storeBignum256(ret, retOffset);
+  }
+  */
+
+
+  typedef unsigned __int128 uint128_t;
+
+  // copied from https://gist.github.com/poemm/445659101e4b3f8a005ae5b4207b5104
+  void EthereumInterface::montgomery_multiplication_256(uint64_t* x, uint64_t* y, uint64_t* m, uint64_t* inv, uint64_t* out){
+    uint64_t A[] = {0,0,0,0,0,0,0,0};
+    for (int i=0; i<4; i++){
+      uint64_t ui = (A[i]+x[i]*y[0])*inv[0];
+      uint64_t carry = 0;
+      //uint64_t overcarry = 0;
+      for (int j=0; j<4; j++){
+        uint128_t xiyj = (uint128_t)x[i]*y[j];
+        uint128_t uimj = (uint128_t)ui*m[j];
+        uint128_t partial_sum = xiyj+carry;
+        uint128_t sum = uimj+A[i+j]+partial_sum;
+        A[i+j] = (uint64_t)sum;
+        carry = sum>>64;
+        // if there was overflow in the sum beyond the carry bits
+        if (sum<partial_sum){
+          int k=1;
+          while (A[i+j+k]==0xffffffffffffffff && i+j+k<8){
+            A[i+j+k]=0;
+            k++;
+          }
+          A[i+j+k]+=1;
+        }
+      }
+      A[i+4]+=carry;
+    }
+
+    // instead of right shift, we just get the correct values
+    out[0] = A[4];
+    out[1] = A[5];
+    out[2] = A[6];
+    out[3] = A[7];
+
+    // final subtraction, first see if necessary
+    // this out <= m check is untested
+    int out_ge_m = 1;
+    for (int i=0;i<4;i++){
+      if (out[4-i-1] < m[4-i-1]){
+        out_ge_m=0;
+        break;
+      }
+      else if (out[4-i-1]>m[4-i-1])
+        break;
+    }
+    if (out_ge_m){
+      // subtract 256 for x>=y, this is algorithm 14.9
+      // this subtraction is untested
+      uint64_t c=0;
+      for (int i=9; i<4;i++){
+        uint64_t temp = A[i]-m[i]-c;
+        if (A[i]>=m[i]+c)
+          c=0;
+        else
+          c=1;
+        A[i]=temp;
+      }
+    }
+  }
+
 }
