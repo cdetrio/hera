@@ -101,7 +101,7 @@ void collectDebugTimer()
 #if HERA_DEBUGGING
   void EthereumInterface::debugStartTimer()
   {
-      cerr << depthToString() << " DEBUG start timer" << endl;
+      //cerr << depthToString() << " DEBUG start timer" << endl;
       debugTimerStarted();
   }
 
@@ -765,6 +765,22 @@ void collectDebugTimer()
     }
   }
 
+  uint8_t* EthereumInterface::loadMemoryPointer(uint32_t srcOffset, size_t length)
+  {
+    // NOTE: the source bound check is not needed as the caller already ensures it
+    //ensureCondition((srcOffset + length) >= srcOffset, InvalidMemoryAccess, "Out of bounds (source) memory copy.");
+    ensureCondition(memorySize() >= (srcOffset + length), InvalidMemoryAccess, "Out of bounds (source) memory copy.");
+
+    if (!length)
+      HERA_DEBUG << "Zero-length memory load from offset 0x" << hex << srcOffset << dec << "\n";
+
+    //for (uint32_t i = 0; i < length; ++i) {
+    //  dst[i] = memoryGet(srcOffset + i);
+    //}
+
+    return memoryPointer(srcOffset, length);
+  }
+
   void EthereumInterface::storeMemoryReverse(const uint8_t *src, uint32_t dstOffset, uint32_t length)
   {
     ensureCondition((dstOffset + length) >= dstOffset, InvalidMemoryAccess, "Out of bounds (destination) memory copy.");
@@ -893,6 +909,23 @@ void collectDebugTimer()
     return ret;
   }
 
+  intx::uint256 EthereumInterface::loadBignumPtr256(uint32_t srcOffset)
+  {
+    //uint8_t data[32];
+    //loadMemory(srcOffset, data, 32);
+    // FIXME: change this to little endian?
+    //return intx::be::uint256(data);
+    // read little endian
+
+    //uint8_t* data_ptr;
+    //loadMemoryPointer(srcOffset, data_ptr, 32);
+    uint8_t* data_ptr = loadMemoryPointer(srcOffset, 32);
+    intx::uint256 x;
+    std::memcpy(&x, data_ptr, sizeof(x));
+    return x;
+  }
+
+
   intx::uint256 EthereumInterface::loadBignum256(uint32_t srcOffset)
   {
     uint8_t data[32];
@@ -918,9 +951,14 @@ void collectDebugTimer()
   void EthereumInterface::addmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset)
   {
     HERA_DEBUG << depthToString() << " addmod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    /*
     auto a = loadBignum256(aOffset);
     auto b = loadBignum256(bOffset);
     auto mod = loadBignum256(modOffset);
+    */
+    auto a = loadBignumPtr256(aOffset);
+    auto b = loadBignumPtr256(bOffset);
+    auto mod = loadBignumPtr256(modOffset);
     HERA_DEBUG << depthToString() << " addmod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
     auto ret = a + b;
     if (ret >= mod) {
@@ -934,9 +972,14 @@ void collectDebugTimer()
   void EthereumInterface::submod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset)
   {
     HERA_DEBUG << depthToString() << " submod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    /*
     auto a = loadBignum256(aOffset);
     auto b = loadBignum256(bOffset);
     auto mod = loadBignum256(modOffset);
+    */
+    auto a = loadBignumPtr256(aOffset);
+    auto b = loadBignumPtr256(bOffset);
+    auto mod = loadBignumPtr256(modOffset);
     HERA_DEBUG << depthToString() << " submod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
     if (a < b) {
       a = a + mod;
@@ -1002,6 +1045,10 @@ void collectDebugTimer()
     auto k1 = (res2 * uint512{inv}).lo & mask;
     auto ret = (((uint512{k1} * uint512{mod}) + res2) >> 128).lo;
     // auto ret = ((uint512{k1} * uint512{mod}) + res2).high ??
+    
+    if (ret >= mod) {
+      ret = ret - mod;
+    }
 
     HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
 

@@ -189,6 +189,8 @@ private:
   void loadMemoryReverse(uint32_t srcOffset, uint8_t *dst, size_t length);
   void loadMemory(uint32_t srcOffset, uint8_t *dst, size_t length);
   void loadMemory(uint32_t srcOffset, bytes& dst, size_t length);
+  //void loadMemoryPointer(uint32_t srcOffset, uint8_t* dst_ptr, size_t length);
+  uint8_t* loadMemoryPointer(uint32_t srcOffset, size_t length);
   void storeMemoryReverse(const uint8_t *src, uint32_t dstOffset, uint32_t length);
   void storeMemory(const uint8_t *src, uint32_t dstOffset, uint32_t length);
   void storeMemory(bytes_view src, uint32_t srcOffset, uint32_t dstOffset, uint32_t length);
@@ -203,6 +205,7 @@ private:
   void storeUint128(evmc_uint256be const& src, uint32_t dstOffset);
 
   intx::uint256 loadBignum256(uint32_t srcOffset);
+  intx::uint256 loadBignumPtr256(uint32_t srcOffset);
   void storeBignum256(intx::uint256 const& src, uint32_t dstOffset);
 
   inline int64_t maxCallGas(int64_t gas) { return gas - (gas / 64); }
