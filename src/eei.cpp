@@ -950,7 +950,7 @@ void collectDebugTimer()
 
   void EthereumInterface::addmod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset)
   {
-    HERA_DEBUG << depthToString() << " addmod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    //HERA_DEBUG << depthToString() << " addmod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
     /*
     auto a = loadBignum256(aOffset);
     auto b = loadBignum256(bOffset);
@@ -959,19 +959,19 @@ void collectDebugTimer()
     auto a = loadBignumPtr256(aOffset);
     auto b = loadBignumPtr256(bOffset);
     auto mod = loadBignumPtr256(modOffset);
-    HERA_DEBUG << depthToString() << " addmod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " addmod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
     auto ret = a + b;
     if (ret >= mod) {
       ret = ret - mod;
     }
-    HERA_DEBUG << depthToString() << " addmod256  result: " << hex << intx::to_string(ret) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " addmod256  result: " << hex << intx::to_string(ret) << dec << "\n";
 
     storeBignum256(ret, retOffset);
   }
 
   void EthereumInterface::submod256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t retOffset)
   {
-    HERA_DEBUG << depthToString() << " submod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    //HERA_DEBUG << depthToString() << " submod256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "  modOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
     /*
     auto a = loadBignum256(aOffset);
     auto b = loadBignum256(bOffset);
@@ -980,12 +980,12 @@ void collectDebugTimer()
     auto a = loadBignumPtr256(aOffset);
     auto b = loadBignumPtr256(bOffset);
     auto mod = loadBignumPtr256(modOffset);
-    HERA_DEBUG << depthToString() << " submod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " submod256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << dec << "\n";
     if (a < b) {
       a = a + mod;
     }
     auto ret = a - b;
-    HERA_DEBUG << depthToString() << " submod256  result: " << hex << intx::to_string(ret) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " submod256  result: " << hex << intx::to_string(ret) << dec << "\n";
 
     storeBignum256(ret, retOffset);
   }
@@ -1016,14 +1016,20 @@ void collectDebugTimer()
   void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
   {
     using intx::uint512;
+    /*
     auto a = loadBignum256(aOffset);
     auto b = loadBignum256(bOffset);
     auto mod = loadBignum256(modOffset);
     auto inv = loadBignum256(invOffset);
+    */
+    auto a = loadBignumPtr256(aOffset);
+    auto b = loadBignumPtr256(bOffset);
+    auto mod = loadBignumPtr256(modOffset);
+    auto inv = loadBignumPtr256(invOffset);
 
-    HERA_DEBUG << depthToString() << " mulmodmont256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
+    //HERA_DEBUG << depthToString() << " mulmodmont256  aOffset: " << hex << aOffset << "   bOffset: " << bOffset << "   retOffset: " << retOffset << dec << "\n";
 
-    HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << "   mod: " << intx::to_string(mod) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " mulmodmont256  a: " << hex << intx::to_string(a) << "   b: " << intx::to_string(b) << "   mod: " << intx::to_string(mod) << dec << "\n";
 
     /*
     python code:
@@ -1050,7 +1056,7 @@ void collectDebugTimer()
       ret = ret - mod;
     }
 
-    HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
+    //HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
 
     storeBignum256(ret, retOffset);
   }
