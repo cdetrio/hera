@@ -49,12 +49,17 @@ bool exceedsUint128(evmc_uint256be const& value) noexcept
 
 bool WasmEngine::benchmarkingEnabled = false;
 
+// Convert duration to string with microsecond units.
+constexpr auto to_ns_str = [](std::chrono::high_resolution_clock::duration d) {
+  return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count());
+};
+
+constexpr auto to_us_str = [](std::chrono::high_resolution_clock::duration d) {
+  return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count());
+};
+
 void WasmEngine::collectBenchmarkingData()
 {
-  // Convert duration to string with microsecond units.
-  constexpr auto to_us_str = [](clock::duration d) {
-    return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count());
-  };
 
   const auto now = clock::now();
   const auto instantiationDuration = executionStartTime - instantiationStartTime;
@@ -69,33 +74,38 @@ void WasmEngine::collectBenchmarkingData()
 
 std::chrono::high_resolution_clock::time_point debugStartTime;
 std::chrono::high_resolution_clock::duration debugTotalDuration;
+int debugIterationCount = 0;
 
 void debugTimerStarted()
 {
   debugStartTime = std::chrono::high_resolution_clock::now();
+  debugIterationCount++;
+}
+
+void debugIterateTimer()
+{
+  const auto now = std::chrono::high_resolution_clock::now();
+  const auto debugDuration = now - debugStartTime;
+  debugTotalDuration = debugTotalDuration + debugDuration;
+  debugStartTime = now;
+  debugIterationCount++;
 }
 
 void collectDebugTimer()
 {
-  // Convert duration to string with microsecond units.
-  constexpr auto to_ns_str = [](std::chrono::high_resolution_clock::duration d) {
-    return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count());
-  };
-
-  constexpr auto to_us_str = [](std::chrono::high_resolution_clock::duration d) {
-    return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count());
-  };
-
   const auto now = std::chrono::high_resolution_clock::now();
   const auto debugDuration = now - debugStartTime;
 
   debugTotalDuration = debugTotalDuration + debugDuration;
+  debugIterationCount++;
   const auto logns = "Debug timer duration [ns]: " + to_ns_str(debugDuration) + ")\n";
   std::cerr << logns;
   //const auto logus = "Debug timer duration [us]: " + to_us_str(debugDuration) + ")\n";
   //std::cerr << logus;
   const auto logus = "Debug timer total duration [us]: " + to_us_str(debugTotalDuration) + ")\n";
   std::cerr << logus;
+
+  std::cerr << "Debug timer iterations: " << debugIterationCount << "\n";
 }
 
 #if HERA_DEBUGGING
@@ -103,6 +113,12 @@ void collectDebugTimer()
   {
       //cerr << depthToString() << " DEBUG start timer" << endl;
       debugTimerStarted();
+  }
+
+  void EthereumInterface::debugIterateTimer()
+  {
+      //cerr << depthToString() << " DEBUG start timer" << endl;
+      debugIterateTimer();
   }
 
   void EthereumInterface::debugFinishTimer()

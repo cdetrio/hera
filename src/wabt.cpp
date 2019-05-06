@@ -704,6 +704,21 @@ ExecutionResult WabtEngine::execute(
   );
 
   hostModule->AppendFuncExport(
+    "debugIterateTimer",
+    {{}, {}},
+    [&interface](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues& args,
+      interp::TypedValues&
+    ) {
+      (void)args;
+      interface.debugIterateTimer();
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
     "printMemHex",
     {{Type::I32, Type::I32}, {}},
     [&interface](
@@ -1316,6 +1331,19 @@ void WabtEngine::verifyContract(bytes_view code) {
 
   hostModule->AppendFuncExport(
     "debugFinishTimer",
+    {{}, {}},
+    [&](
+      const interp::HostFunc*,
+      const interp::FuncSignature*,
+      const interp::TypedValues&,
+      interp::TypedValues&
+    ) {
+      return interp::Result::Ok;
+    }
+  );
+
+  hostModule->AppendFuncExport(
+    "debugIterateTimer",
     {{}, {}},
     [&](
       const interp::HostFunc*,
