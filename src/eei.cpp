@@ -1058,6 +1058,7 @@ void collectDebugTimer()
   */
 
 
+  /*
   // for debugging montgomery_multiplication_256...
   void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
   {
@@ -1121,10 +1122,9 @@ void collectDebugTimer()
 
     storeBignum256(ret, retOffset);
   }
+  */
 
 
-
-  /*
   void EthereumInterface::mulmodmont256(uint32_t aOffset, uint32_t bOffset, uint32_t modOffset, uint32_t invOffset, uint32_t retOffset)
   {
     // we aren't using the intx 
@@ -1148,7 +1148,6 @@ void collectDebugTimer()
     // storeBignum256 should also be uneeded, since the return value has already been written to the wasm memory
     //storeBignum256(ret, retOffset);
   }
-  */
 
 
   typedef unsigned __int128 uint128_t;
@@ -1201,13 +1200,13 @@ void collectDebugTimer()
       // subtract 256 for x>=y, this is algorithm 14.9
       // this subtraction is untested
       uint64_t c=0;
-      for (int i=9; i<4;i++){
-        uint64_t temp = A[i]-m[i]-c;
-        if (A[i]>=m[i]+c)
+      for (int i=0; i<4;i++){
+        uint64_t temp = out[i]-m[i]-c;
+        if (out[i]>=m[i]+c)
           c=0;
         else
           c=1;
-        A[i]=temp;
+        out[i]=temp;
       }
     }
   }
