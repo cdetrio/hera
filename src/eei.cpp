@@ -1095,7 +1095,7 @@ void collectDebugTimer()
       ret = ret - mod;
     }
 
-    HERA_DEBUG << depthToString() << " mulmodmont256  ret: " << hex << intx::to_string(ret) << dec << "\n";
+    HERA_DEBUG << depthToString() << " mulmodmont256  correct ret: " << hex << intx::to_string(ret) << dec << "\n";
 
     //loadMemory(srcOffset, data, 32);
     //intx::uint256 ret_test;
@@ -1113,8 +1113,8 @@ void collectDebugTimer()
     intx::uint256 ret_intx;
     std::memcpy(&ret_intx, ret_data, sizeof(ret_intx));
 
-    HERA_DEBUG << depthToString() << " montgomery_multiplication_256  ret_intx: " << hex << intx::to_string(ret_intx) << dec << "\n";
-    
+    HERA_DEBUG << depthToString() << " montgomery_multiplication_256  poemm ret: " << hex << intx::to_string(ret_intx) << dec << "\n";
+
     if (ret_intx != ret)  {
       HERA_DEBUG << depthToString() <<  "ERROR ERROR!!! montgomery_multiplication_256 wrong result!!" << dec  << "\n";
     }
@@ -1159,7 +1159,6 @@ void collectDebugTimer()
     for (int i=0; i<4; i++){
       uint64_t ui = (A[i]+x[i]*y[0])*inv[0];
       uint64_t carry = 0;
-      //uint64_t overcarry = 0;
       for (int j=0; j<4; j++){
         uint128_t xiyj = (uint128_t)x[i]*y[j];
         uint128_t uimj = (uint128_t)ui*m[j];
@@ -1169,12 +1168,13 @@ void collectDebugTimer()
         carry = sum>>64;
         // if there was overflow in the sum beyond the carry bits
         if (sum<partial_sum){
-          int k=1;
-          while (A[i+j+k]==0xffffffffffffffff && i+j+k<8){
+          int k=2;
+          while ( i+j+k<8 && A[i+j+k]==0xffffffffffffffff ){
             A[i+j+k]=0;
             k++;
           }
-          A[i+j+k]+=1;
+          if (i+j+k<8)
+            A[i+j+k]+=1;
         }
       }
       A[i+4]+=carry;
